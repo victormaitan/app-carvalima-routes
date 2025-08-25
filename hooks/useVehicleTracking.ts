@@ -176,11 +176,12 @@ export function useVehicleTracking() {
         marker.position = route.destino;
         if (!arrivedVehicles.current.has(route.idRota)) {
           // Só loga chegada quando a rota cruzar seu próprio horário de chegada
-          const destMs = normalizeSequentialTimes([
+          const timesSeq = normalizeSequentialTimes([
             route.horarioSaida,
             ...((Array.isArray((route as any).passaPor) ? route.passaPor : []) as any[]).flatMap((s) => [s.horarioChegada, s.horarioSaida]),
             route.horarioChegada
-          ], baseDate).at(-1)!.getTime();
+          ], baseDate);
+          const destMs = timesSeq[timesSeq.length - 1]!.getTime();
           const lastMs = routeLastTimeRef.current.get(route.idRota) ?? null;
           const nowMs = globalNow.getTime();
           const crossedArrival = lastMs == null ? nowMs >= destMs : lastMs < destMs && nowMs >= destMs;
