@@ -1,0 +1,74 @@
+[
+  {
+    "idRota": "JAR-CGB",
+    "origem": {
+      "lat": -11.2602989,
+      "lng": -57.5065359
+    },
+    "destino": {
+      "lat": -15.6787019,
+      "lng": -56.0445861
+    },
+    "horarioSaida": "18:00",
+    "horarioChegada": "06:00",
+    "passaPor": [
+      {
+        "lat": -12.124544,
+        "lng": -58.008374,
+        "horarioChegada": "21:00",
+        "horarioSaida": "22:00",
+        "id":"BRA"
+      },
+      {
+        "lat": -13.658568,
+        "lng": -57.893264,
+        "horarioChegada": "00:00",
+        "horarioSaida": "01:00",
+        "id":"CNP"
+      },
+      {
+        "lat": -14.402856,
+        "lng": -56.424810,
+        "horarioChegada": "03:00",
+        "horarioSaida": "04:00",
+        "id":"DIA"
+      }
+    ]
+  },
+  {
+    "idRota": "CGB-JAR",
+    "origem": {
+      "lat": -15.6787019,
+      "lng": -56.0445861
+    },
+    "destino": {
+      "lat": -11.2602989,
+      "lng": -57.5065359
+    },
+    "horarioSaida": "22:30",
+    "horarioChegada": "13:00",
+    "passaPor": [
+      {
+        "lat": -14.402856,
+        "lng": -56.424810,
+        "horarioChegada": "00:00",
+        "horarioSaida": "01:00",
+        "id":"DIA"
+      },
+      {
+        "lat": -13.658568,
+        "lng": -57.893264,
+        "horarioChegada": "04:00",
+        "horarioSaida": "05:00",
+        "id":"CNP"
+      },
+      {
+        "lat": -12.124544,
+        "lng": -58.008374,
+        "horarioChegada": "09:30",
+        "horarioSaida": "10:30",
+        "id":"BRA"
+      }
+    ]
+  }
+]
