@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { VehicleMarker } from '../shared/types';
+import type { VehicleMarker } from '../shared/types';
 
 function normalizeTime(timeStr: string, baseDate: Date): Date {
   const [hours, minutes] = timeStr.split(':').map(Number);
@@ -89,9 +89,20 @@ function nearestDistanceAlongPath(
   return best.along;
 }
 
+function setMarkerPosition(marker: VehicleMarker, pos: { lat: number; lng: number }) {
+  // Compatível com Marker clássico e AdvancedMarkerElement
+  const anyMarker = marker as any;
+  if (typeof anyMarker.setPosition === 'function') {
+    anyMarker.setPosition(new google.maps.LatLng(pos.lat, pos.lng));
+  } else {
+    marker.position = { lat: pos.lat, lng: pos.lng } as any;
+  }
+}
+
 export function useVehicleTracking() {
   const [messages, setMessages] = useState<string[]>([]);
   const [currentTime, setCurrentTime] = useState('00:00');
+  const currentTimeRef = useRef('00:00');
   const lastProgressRef = useRef<number>(0);
   const arrivedVehicles = useRef(new Set<string>());
   // Logs de paradas intermediárias por rota (controle de duplicidade)
@@ -101,9 +112,11 @@ export function useVehicleTracking() {
   // Controle de log de saída da origem por rota
   const originDeparturesRef = useRef(new Set<string>());
 
-  const addMessage = useCallback((message: string) => {
-    setMessages((prev) => [...prev, `[${currentTime}] ${message}`]);
-  }, [currentTime]);
+  const addMessage = (message: string) => {
+    // Usa o horário simulado atual (currentTimeRef) e evita recriar a função
+    const ts = currentTimeRef.current || '00:00';
+    setMessages((prev) => [...prev, `[${ts}] ${message}`]);
+  };
 
   const updateVehiclePositions = useCallback((
     progress: number,
@@ -173,7 +186,7 @@ export function useVehicleTracking() {
 
       if (durationMs === 0 || progressFraction >= 1) {
         // Veículo chegou ao destino
-        marker.position = route.destino;
+        setMarkerPosition(marker, route.destino);
         if (!arrivedVehicles.current.has(route.idRota)) {
           // Só loga chegada quando a rota cruzar seu próprio horário de chegada
           const timesSeq = normalizeSequentialTimes([
@@ -192,7 +205,7 @@ export function useVehicleTracking() {
         }
       } else if (progressFraction <= 0) {
         // Veículo na origem
-        marker.position = route.origem;
+        setMarkerPosition(marker, route.origem);
       } else {
         // Veículo em rota - interpolação por distância ao longo do caminho (evita saltos longos)
         // Constrói o caminho incluindo origem e destino para evitar saltos iniciais/finais
@@ -207,7 +220,7 @@ export function useVehicleTracking() {
         }
 
         if (points.length < 2) {
-          marker.position = points[0] ?? route.origem;
+          setMarkerPosition(marker, points[0] ?? route.origem);
         } else {
           // Haversine para distância em metros
           const haversine = (p1: { lat: number; lng: number }, p2: { lat: number; lng: number }) => {
@@ -233,7 +246,7 @@ export function useVehicleTracking() {
 
           if (totalDist <= 0) {
             // Todos os pontos iguais
-            marker.position = points[0];
+            setMarkerPosition(marker, points[0]);
           } else {
             // Calcula posição baseada no cronograma de horários (origem -> paradas -> destino)
             const stops = Array.isArray((route as any).passaPor) ? route.passaPor : [];
@@ -344,7 +357,7 @@ export function useVehicleTracking() {
             }
 
             if (fixedPos) {
-              marker.position = fixedPos as any;
+              setMarkerPosition(marker, fixedPos);
             } else if (targetDist != null) {
               // Encontra o segmento onde a distância alvo cai
               let seg = 0;
@@ -358,7 +371,7 @@ export function useVehicleTracking() {
 
               const lat = segStart.lat + (segEnd.lat - segStart.lat) * t;
               const lng = segStart.lng + (segEnd.lng - segStart.lng) * t;
-              marker.position = { lat, lng } as any;
+              setMarkerPosition(marker, { lat, lng });
             }
           }
         }
@@ -372,9 +385,10 @@ export function useVehicleTracking() {
         hour: '2-digit',
         minute: '2-digit'
       });
+      currentTimeRef.current = formattedTime;
       setCurrentTime(formattedTime);
     }
-  }, [addMessage]);
+  }, []);
 
   return {
     messages,

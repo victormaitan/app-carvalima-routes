@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import Map from './components/Map';
 import RoutesManager from './components/RoutesManager';
+import './app.css';
 
 function App() {
   const [currentView, setCurrentView] = useState<'map' | 'editor'>('map');
   return (
-    <div className="min-h-screen bg-gray-800">
-      <nav className="bg-blue-900 text-white p-">
+    <div className="min-h-screen h-full flex flex-col bg-gray-800">
+      <nav className="bg-blue-900 text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold">Route Simulator</h1>
           <div className="space-x-4">
@@ -34,7 +35,7 @@ function App() {
         </div>
       </nav>
       
-      <main className="mx-auto">
+      <main className="flex-1 flex flex-col">
         {currentView === 'map' ? <Map /> : <RoutesManager />}
       </main>
     </div>

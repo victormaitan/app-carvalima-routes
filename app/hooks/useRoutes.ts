@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Route } from '../shared/types';
+import type { Route } from '../shared/types';
 import { routes as defaultRoutes } from '../data/routes';
 
 export function useRoutes() {

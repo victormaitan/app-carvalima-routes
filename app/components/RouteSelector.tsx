@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Route } from '../shared/types';
+import type { Route } from '../shared/types';
 import { CheckSquare, Search, X } from 'lucide-react';
 
 interface RouteSelectorProps {

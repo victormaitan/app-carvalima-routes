@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import routes from '../data/routes/routes.json';
+import { routes } from '../data/routes';
 
 // Define the Route interface based on the actual JSON structure
 interface Route {

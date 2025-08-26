@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Edit2, Save, X } from 'lucide-react';
-import { Route } from '../shared/types';
+import type { Route } from '../shared/types';
 
 interface RouteEditorProps {
   route: Route;

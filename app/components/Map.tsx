@@ -16,8 +16,69 @@ export default function Map() {
   const [isLooping, setIsLooping] = useState(false);
   const lastTsRef = useRef<number | null>(null);
   
-  const { map, markers, directionsRenderers } = useMapSetup(mapRef, selectedRoutes);
+  const [mapLoading, setMapLoading] = useState(true);
+  const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
+  
+  // Verifica se o Google Maps API está carregado (sem polling infinito)
+  useEffect(() => {
+    if (window.google?.maps) {
+      setGoogleMapsLoaded(true);
+      return;
+    }
+
+    const onLoad = () => setGoogleMapsLoaded(true);
+    const onError = () => console.error('Falha ao carregar Google Maps API');
+
+    // Tenta usar a tag existente do index.html
+    const existing = document.querySelector('script[src^="https://maps.googleapis.com/maps/api/js" ]') as HTMLScriptElement | null;
+    if (existing) {
+      existing.addEventListener('load', onLoad);
+      existing.addEventListener('error', onError);
+      return () => {
+        existing.removeEventListener('load', onLoad);
+        existing.removeEventListener('error', onError);
+      };
+    }
+
+    // Fallback: injeta script caso não exista
+    const script = document.createElement('script');
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyAX8x4AYHgc4-JRgzlPM36ytv2zqejL28c&libraries=geometry,marker';
+    script.async = true;
+    script.defer = true;
+    script.addEventListener('load', onLoad);
+    script.addEventListener('error', onError);
+    document.head.appendChild(script);
+
+    return () => {
+      script.removeEventListener('load', onLoad);
+      script.removeEventListener('error', onError);
+    };
+  }, []);
+  
+  const { map, markers, directionsRenderers } = useMapSetup(mapRef, selectedRoutes, googleMapsLoaded);
   const { messages, currentTime, updateVehiclePositions } = useVehicleTracking();
+
+  // Refs para evitar depender de objetos mutáveis em efeitos
+  const markersRef = useRef(markers);
+  const selectedRoutesRef = useRef(selectedRoutes);
+  useEffect(() => { markersRef.current = markers; }, [markers]);
+  useEffect(() => { selectedRoutesRef.current = selectedRoutes; }, [selectedRoutes]);
+  // Refs para animação (evita re-execução por dependências)
+  const sliderRef = useRef(sliderProgress);
+  const playingRef = useRef(isPlaying);
+  const loopingRef = useRef(isLooping);
+  const animProgressRef = useRef(0);
+  useEffect(() => { sliderRef.current = sliderProgress; }, [sliderProgress]);
+  useEffect(() => { playingRef.current = isPlaying; }, [isPlaying]);
+  useEffect(() => { loopingRef.current = isLooping; }, [isLooping]);
+  
+  // Quando o mapa for carregado, desativa o estado de carregamento
+  useEffect(() => {
+    if (map) {
+      console.log("Mapa inicializado com sucesso");
+      setMapLoading(false);
+    }
+  }, [map]);
 
   // Fallback de horário para evitar iniciar em "00:00" antes da 1ª atualização do hook
   const displayTime = React.useMemo(() => {
@@ -60,25 +121,31 @@ export default function Map() {
 
   const updateMarkerVisibility = useCallback(() => {
     markers.forEach((marker) => {
-      marker.map = selectedRoutes.has(marker.routeId!) ? map : null;
+      const anyMarker = marker as any;
+      const shouldShow = selectedRoutes.has(marker.routeId!);
+      if (typeof anyMarker.setMap === 'function') {
+        anyMarker.setMap(shouldShow ? map : null);
+      } else {
+        marker.map = shouldShow ? map! : null;
+      }
     });
     directionsRenderers.forEach((renderer, index) => {
       renderer.setMap(selectedRoutes.has(routes[index].idRota) ? map : null);
     });
   }, [markers, directionsRenderers, map, selectedRoutes]);
 
-  // Initial position update and whenever sliderProgress changes
+  // Atualiza posições quando slider muda manualmente (não durante a animação)
   useEffect(() => {
-    if (markers.length > 0) {
-      updateMarkerVisibility();
-      updateVehiclePositions(sliderProgress, markers, selectedRoutes);
+    if (!playingRef.current && markersRef.current.length > 0) {
+      updateVehiclePositions(sliderProgress, markersRef.current, selectedRoutesRef.current);
+      animProgressRef.current = sliderProgress;
     }
-  }, [markers, selectedRoutes, updateMarkerVisibility, sliderProgress, updateVehiclePositions]);
+  }, [sliderProgress, updateVehiclePositions]);
 
-  // Update visibility when routes change
+  // Update visibility when routes or markers change
   useEffect(() => {
     updateMarkerVisibility();
-  }, [selectedRoutes, updateMarkerVisibility]);
+  }, [selectedRoutes, markers, updateMarkerVisibility]);
 
   const handleRouteToggle = (routeId: string) => {
     setSelectedRoutes((prev) => {
@@ -94,10 +161,11 @@ export default function Map() {
 
   const handleTimeChange = (progress: number) => {
     // Apenas atualiza o estado; o efeito abaixo cuidará de atualizar as posições
+    sliderRef.current = progress;
     setSliderProgress(progress);
   };
 
-  // Loop de animação por requestAnimationFrame
+  // Loop de animação por requestAnimationFrame: atualiza apenas refs e posições (sem setState no tick)
   useEffect(() => {
     if (!isPlaying) {
       lastTsRef.current = null;
@@ -107,37 +175,56 @@ export default function Map() {
     let rafId: number;
 
     const tick = (ts: number) => {
+      if (!playingRef.current) return; // early exit
       if (lastTsRef.current == null) {
         lastTsRef.current = ts;
       }
-      const dt = ts - lastTsRef.current; // ms desde último frame
+      const dt = ts - (lastTsRef.current ?? ts); // ms desde último frame
       lastTsRef.current = ts;
 
-      // Avança de 100% em 60s na velocidade 1x (ajustável)
       const baseMsForFull = 60000; // 60s para 0->100
       const deltaProgress = (dt / baseMsForFull) * 100 * speed;
-      setSliderProgress(prev => {
-        let next = prev + deltaProgress;
-        if (next >= 100) {
-          if (isLooping) {
-            // volta para o início mantendo o excesso de progresso
-            next = next % 100;
-          } else {
-            next = 100;
-            setIsPlaying(false);
-          }
-        }
-        return next;
-      });
 
-      if (isPlaying) {
+      // Atualiza a progressão da animação e clampa
+      let next = animProgressRef.current + deltaProgress;
+      if (next >= 100) {
+        if (loopingRef.current) {
+          next = next % 100;
+        } else {
+          next = 100;
+        }
+      }
+      animProgressRef.current = next;
+
+      // Move veículos diretamente com o progresso atual (sem setState)
+      if (markersRef.current.length > 0) {
+        updateVehiclePositions(next, markersRef.current, selectedRoutesRef.current);
+      }
+
+      // Continua enquanto playing
+      if (playingRef.current && !(next === 100 && !loopingRef.current)) {
         rafId = requestAnimationFrame(tick);
       }
     };
 
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
-  }, [isPlaying, speed, markers, selectedRoutes, updateVehiclePositions]);
+  }, [isPlaying, speed, updateVehiclePositions]);
+
+  // Sincroniza o slider com a animação em um intervalo leve (10x/s) quando tocando
+  useEffect(() => {
+    if (!isPlaying) return;
+    const id = setInterval(() => {
+      // Avança o slider visível sem causar loop nos efeitos (é só espelho visual)
+      const progress = animProgressRef.current;
+      setSliderProgress(progress);
+      // Auto-stop: ao atingir 100% sem loop, atualiza o estado do play/pause
+      if (!loopingRef.current && progress >= 100) {
+        setIsPlaying(false);
+      }
+    }, 100);
+    return () => clearInterval(id);
+  }, [isPlaying]);
 
   const handleShare = () => {
     const routesParam = Array.from(selectedRoutes).join(',');
@@ -171,9 +258,28 @@ export default function Map() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex-1 relative min-h-0">
-          <div ref={mapRef} className="absolute inset-0" />
+      <div className="flex-1 flex flex-col">
+        <div className='h-screen' style={{position: 'relative' }}>
+          <div ref={mapRef} style={{ width: '100%', height: '100%', backgroundColor: '#e0e0e0' }} />
+          {mapLoading && (
+            <div style={{ 
+              position: 'absolute', 
+              top: 0, 
+              left: 0, 
+              right: 0, 
+              bottom: 0, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              zIndex: 10
+            }}>
+              <div style={{ color: 'white', textAlign: 'center' }}>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p className="text-lg">Carregando mapa... {googleMapsLoaded ? '(API carregada)' : '(API não carregada)'}</p>
+              </div>
+            </div>
+          )}
         </div>
         
         <div className="flex-none h-20 sm:h-24 border-t border-gray-700">

@@ -45,7 +45,7 @@ export default function MessagePanel({
                   {msg}
                   {extrairCodigo(msg)?.split('-')[1] === 'CGB' ? (
                     <span
-                      className="text-white bg-red-500 border-b-2 border-l-2 px-1 py-0.5 text-[10px] sm:text-xs rounded mx-1 font-semibold absolute z-10 -right-1 -top-0.5"
+                      className="text-white bg-red-500 border-b-2 border-l-2 px-0.5 py-0.5 text-[10px] sm:text-xs rounded mx-0.5 font-semibold absolute z-10 -right-1 -top-2"
                       title=""
                     >
                       {" "}
@@ -61,7 +61,7 @@ export default function MessagePanel({
                   {msg}
                   {extrairCodigo(msg)?.split('-')[1] === 'CGB' ? (
                     <span
-                      className="text-white bg-green-500 border-b-2 border-l-2 px-1 py-0.5 text-[10px] sm:text-xs rounded mx-1 font-semibold absolute z-10 -right-1 -top-0.5"
+                      className="text-white bg-green-500 border-b-2 border-l-2 px-0.5 py-0.5 text-[10px] sm:text-xs rounded mx-0.5 font-semibold absolute z-10 -right-1 -top-2"
                       title=""
                     >
                       {" "}
@@ -77,7 +77,7 @@ export default function MessagePanel({
                   {msg}
                   {extrairCodigo(msg)?.split('-')[1] === 'CGB' ? (
                     <span
-                      className="text-white bg-blue-500 border-b-2 border-l-2 px-1 py-0.5 text-[10px] sm:text-xs rounded mx-1 font-semibold absolute z-10 -right-1 -top-0.5"
+                      className="text-white bg-blue-500 border-b-2 border-l-2 px-0.5 py-0.5 text-[10px] sm:text-xs rounded mx-0.5 font-semibold absolute z-10 -right-1 -top-2"
                       title=""
                     >
                       {" "}
