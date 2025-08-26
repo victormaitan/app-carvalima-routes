@@ -1,73 +1,211 @@
 [
   {
-    "idRota": "JAR-CGB",
+    "idRota": "CGB-CNP",
     "origem": {
-      "lat": -11.2602989,
-      "lng": -57.5065359
-    },
-    "destino": {
       "lat": -15.6787019,
       "lng": -56.0445861
     },
-    "horarioSaida": "18:00",
-    "horarioChegada": "06:00",
+    "destino": {
+      "lat": -13.6507084,
+      "lng": -57.9546323
+    },
+    "horarioSaida": "22:00",
+    "horarioChegada": "08:00",
+    "grupo": "THR/OESTE",
     "passaPor": [
       {
-        "lat": -12.124544,
-        "lng": -58.008374,
-        "horarioChegada": "21:00",
-        "horarioSaida": "22:00",
-        "id":"BRA"
-      },
-      {
-        "lat": -13.658568,
-        "lng": -57.893264,
-        "horarioChegada": "00:00",
-        "horarioSaida": "01:00",
-        "id":"CNP"
-      },
-      {
-        "lat": -14.402856,
-        "lng": -56.424810,
-        "horarioChegada": "03:00",
+        "lat": -14.405337,
+        "lng": -56.433009,
+        "horarioChegada": "01:00",
         "horarioSaida": "04:00",
-        "id":"DIA"
+        "id": "DIA"
       }
     ]
   },
   {
-    "idRota": "CGB-JAR",
+    "idRota": "CNP-CGB",
+    "origem": {
+      "lat": -13.6507084,
+      "lng": -57.9546323
+    },
+    "destino": {
+      "lat": -15.6787019,
+      "lng": -56.0445861
+    },
+    "horarioSaida": "11:00",
+    "horarioChegada": "21:00",
+    "grupo": "THR/OESTE",
+    "passaPor": [
+      {
+        "lat": -14.405337,
+        "lng": -56.433009,
+        "horarioChegada": "14:00",
+        "horarioSaida": "17:00",
+        "id": "DIA"
+      }
+    ]
+  },
+  {
+    "idRota": "CGB-SPZ",
     "origem": {
       "lat": -15.6787019,
       "lng": -56.0445861
     },
     "destino": {
-      "lat": -11.2602989,
-      "lng": -57.5065359
+      "lat": -13.5466099,
+      "lng": -58.8382399
     },
     "horarioSaida": "22:30",
-    "horarioChegada": "13:00",
+    "horarioChegada": "10:30",
+    "grupo": "THR/OESTE",
     "passaPor": [
       {
-        "lat": -14.402856,
-        "lng": -56.424810,
+        "lat": -14.405337,
+        "lng": -56.433009,
+        "horarioChegada": "01:00",
+        "horarioSaida": "02:00",
+        "id": "DIA"
+      },
+      {
+        "lat": -13.6507084,
+        "lng": -57.9546323,
+        "horarioChegada": "06:00",
+        "horarioSaida": "08:30",
+        "id": "CNP"
+      }
+    ]
+  },
+  {
+    "idRota": "SPZ-CGB",
+    "origem": {
+      "lat": -13.5466099,
+      "lng": -58.8382399
+    },
+    "destino": {
+      "lat": -15.6787019,
+      "lng": -56.0445861
+    },
+    "horarioSaida": "21:30",
+    "horarioChegada": "07:00",
+    "grupo": "THR/OESTE",
+    "passaPor": [
+      {
+        "lat": -13.6507084,
+        "lng": -57.9546323,
+        "horarioChegada": "23:30",
+        "horarioSaida": "00:30",
+        "id": "CNP"
+      },
+      {
+        "lat": -14.405337,
+        "lng": -56.433009,
+        "horarioChegada": "04:00",
+        "horarioSaida": "04:30",
+        "id": "DIA"
+      }
+    ]
+  },
+  {
+    "idRota": "CGB-ARE",
+    "origem": {
+      "lat": -15.6787019,
+      "lng": -56.0445861
+    },
+    "destino": {
+      "lat": -14.4621742,
+      "lng": -56.8518171
+    },
+    "horarioSaida": "01:30",
+    "horarioChegada": "08:00",
+    "grupo": "",
+    "passaPor": [
+      {
+        "lat": -15.066575,
+        "lng": -57.182602,
+        "horarioChegada": "04:30",
+        "horarioSaida": "06:00",
+        "id": "BBR"
+      }
+    ]
+  },
+  {
+    "idRota": "ARE-CGB",
+    "origem": {
+      "lat": -14.4621742,
+      "lng": -56.8518171
+    },
+    "destino": {
+      "lat": -15.6787019,
+      "lng": -56.0445861
+    },
+    "horarioSaida": "11:00",
+    "horarioChegada": "17:30",
+    "grupo": "",
+    "passaPor": [
+      {
+        "lat": -15.066575,
+        "lng": -57.182602,
+        "horarioChegada": "14:00",
+        "horarioSaida": "15:30",
+        "id": "BBR"
+      }
+    ]
+  },
+  {
+    "idRota": "CGB-CCC",
+    "origem": {
+      "lat": 0,
+      "lng": 0
+    },
+    "destino": {
+      "lat": 0,
+      "lng": 0
+    },
+    "horarioSaida": "22:30",
+    "horarioChegada": "07:30",
+    "passaPor": [
+      {
+        "lat": 0,
+        "lng": 0,
+        "horarioChegada": "01:00",
+        "horarioSaida": "02:00",
+        "id": "NVT"
+      },
+      {
+        "lat": 0,
+        "lng": 0,
+        "horarioChegada": "05:00",
+        "horarioSaida": "06:00",
+        "id": "CNP"
+      }
+    ]
+  },
+  {
+    "idRota": "CCC-CGB",
+    "origem": {
+      "lat": 0,
+      "lng": 0
+    },
+    "destino": {
+      "lat": 0,
+      "lng": 0
+    },
+    "horarioSaida": "17:00",
+    "horarioChegada": "03:00",
+    "passaPor": [
+      {
+        "lat": 0,
+        "lng": 0,
+        "horarioChegada": "20:00",
+        "horarioSaida": "21:00",
+        "id": "CNP"
+      },
+      {
+        "lat": 0,
+        "lng": 0,
         "horarioChegada": "00:00",
         "horarioSaida": "01:00",
-        "id":"DIA"
-      },
-      {
-        "lat": -13.658568,
-        "lng": -57.893264,
-        "horarioChegada": "04:00",
-        "horarioSaida": "05:00",
-        "id":"CNP"
-      },
-      {
-        "lat": -12.124544,
-        "lng": -58.008374,
-        "horarioChegada": "09:30",
-        "horarioSaida": "10:30",
-        "id":"BRA"
+        "id": "DIA"
       }
     ]
   }
