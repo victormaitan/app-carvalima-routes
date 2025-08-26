@@ -42,7 +42,8 @@ export default function Map() {
 
     // Fallback: injeta script caso não exista
     const script = document.createElement('script');
-    script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyAX8x4AYHgc4-JRgzlPM36ytv2zqejL28c&libraries=geometry,marker';
+    const apiKey = (import.meta as any).env?.VITE_MAPS_KEY || '';
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=geometry,marker`;
     script.async = true;
     script.defer = true;
     script.addEventListener('load', onLoad);

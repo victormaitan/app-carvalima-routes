@@ -9,6 +9,10 @@ export default defineConfig({
   build: {
     sourcemap: true,
   },
+  define: {
+    // Expor MAPS_KEY (sem prefixo) como VITE_MAPS_KEY para o client
+    'import.meta.env.VITE_MAPS_KEY': JSON.stringify(process.env.MAPS_KEY || ''),
+  },
   resolve: {
     alias: {
       '~': '/app',

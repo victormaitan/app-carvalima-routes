@@ -3,10 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "react-router build",
-    "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "build": "dotenv -e .env -- react-router build",
+    "dev": "dotenv -e .env -- react-router dev",
+    "start": "dotenv -e .env -- react-router-serve ./build/server/index.js",
+    "typecheck": "dotenv -e .env -- react-router typegen && tsc"
   },
   "dependencies": {
     "@react-router/node": "^7.7.1",
@@ -25,6 +25,8 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vercel/react-router": "^1.2.2",
+    "dotenv": "^17.2.1",
+    "dotenv-cli": "^10.0.0",
     "tailwindcss": "^4.1.4",
     "typescript": "^5.8.3",
     "vite": "^6.3.3",
