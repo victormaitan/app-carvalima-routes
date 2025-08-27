@@ -36,16 +36,26 @@ export default function MessagePanel({
       <div className="flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 p-3 sm:p-4">
           <div className="space-y-2">
-            {[...messages].map((msg, i) =>
-              msg.includes("saiu") ? (
+            {[...messages].map((raw, i) => {
+              const sep = raw.indexOf('|');
+              const key = sep > 0 ? raw.slice(0, sep) : `${i}`;
+              const msg = sep > 0 ? raw.slice(sep + 1) : raw;
+              const isOut = msg.includes("saiu");
+              const isDest = msg.includes("destino");
+              const code = extrairCodigo(msg)?.split('-')[1];
+              return (
                 <div
-                  key={i}
-                  className="p-2 bg-red-600 rounded-lg text-xs sm:text-sm animate-fade-in relative"
+                  key={key}
+                  className={`p-2 rounded-lg text-xs sm:text-sm animate-fade-in relative ${
+                    isOut ? 'bg-red-600' : isDest ? 'bg-green-600' : 'bg-blue-700'
+                  }`}
                 >
                   {msg}
-                  {extrairCodigo(msg)?.split('-')[1] === 'CGB' ? (
+                  {code === 'CGB' ? (
                     <span
-                      className="text-white bg-red-500 border-b-2 border-l-2 px-0.5 py-0.5 text-[10px] sm:text-xs rounded mx-0.5 font-semibold absolute z-10 -right-1 -top-2"
+                      className={`text-white border-b-2 border-l-2 px-0.5 py-0.5 text-[10px] sm:text-xs rounded mx-0.5 font-semibold absolute z-10 -right-1 -top-2 ${
+                        isOut ? 'bg-red-500' : isDest ? 'bg-green-500' : 'bg-blue-500'
+                      }`}
                       title=""
                     >
                       {" "}
@@ -53,40 +63,8 @@ export default function MessagePanel({
                     </span>
                   ) : null}
                 </div>
-              ) : msg.includes("destino") ? (
-                <div
-                  key={i}
-                  className="p-2 bg-green-600 rounded-lg text-xs sm:text-sm animate-fade-in relative"
-                >
-                  {msg}
-                  {extrairCodigo(msg)?.split('-')[1] === 'CGB' ? (
-                    <span
-                      className="text-white bg-green-500 border-b-2 border-l-2 px-0.5 py-0.5 text-[10px] sm:text-xs rounded mx-0.5 font-semibold absolute z-10 -right-1 -top-2"
-                      title=""
-                    >
-                      {" "}
-                      Retorno
-                    </span>
-                  ) : null}
-                </div>
-              ) : (
-                <div
-                  key={i}
-                  className="p-2 bg-blue-700 rounded-lg text-xs sm:text-sm animate-fade-in relative"
-                >
-                  {msg}
-                  {extrairCodigo(msg)?.split('-')[1] === 'CGB' ? (
-                    <span
-                      className="text-white bg-blue-500 border-b-2 border-l-2 px-0.5 py-0.5 text-[10px] sm:text-xs rounded mx-0.5 font-semibold absolute z-10 -right-1 -top-2"
-                      title=""
-                    >
-                      {" "}
-                      Retorno
-                    </span>
-                  ) : null}
-                </div>
-              )
-            )}
+              );
+            })}
             <div ref={messagesEndRef} />
           </div>
         </div>

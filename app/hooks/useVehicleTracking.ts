@@ -112,10 +112,19 @@ export function useVehicleTracking() {
   // Controle de log de saída da origem por rota
   const originDeparturesRef = useRef(new Set<string>());
 
+  // Contador para IDs únicos de mensagens (garante animação de fade por item)
+  const msgCounterRef = useRef(0);
+
   const addMessage = (message: string) => {
     // Usa o horário simulado atual (currentTimeRef) e evita recriar a função
     const ts = currentTimeRef.current || '00:00';
-    setMessages((prev) => [...prev, `[${ts}] ${message}`]);
+    const id = `${Date.now()}_${msgCounterRef.current++}`; // id único estável
+    setMessages((prev) => {
+      const entry = `${id}|[${ts}] ${message}`; // prefixo "id|" para usar como key no componente
+      const next = [...prev, entry];
+      // Limita a 20 itens mais recentes
+      return next.length > 100 ? next.slice(next.length - 100) : next;
+    });
   };
 
   const updateVehiclePositions = useCallback((
@@ -175,6 +184,15 @@ export function useVehicleTracking() {
 
       const durationMs = Math.max(0, routeEnd.getTime() - routeStart.getTime());
 
+      // Visibilidade: não ocultamos mais os ícones; mantenha-os sempre visíveis quando a rota estiver selecionada
+      try {
+        const iconEl = (marker as any).iconEl as HTMLElement | undefined;
+        if (iconEl) {
+          const showIcon = selectedRoutes.has(marker.routeId!);
+          iconEl.style.display = showIcon ? '' : 'none';
+        }
+      } catch {}
+
       // Calcula o tempo atual da rota ancorado no relógio global
       let routeCurrentTime = globalNow;
       // Antes de sair: fixa na origem; durante: usa global; após chegar: fixa no destino
@@ -185,24 +203,9 @@ export function useVehicleTracking() {
       }
 
       if (durationMs === 0 || progressFraction >= 1) {
-        // Veículo chegou ao destino
+        // Ao finalizar a simulação global, não fazemos troca/ocultação aqui para evitar duplicidades.
+        // A chegada e troca são tratadas pelo bloco por-rota (com base em horários) mais abaixo.
         setMarkerPosition(marker, route.destino);
-        if (!arrivedVehicles.current.has(route.idRota)) {
-          // Só loga chegada quando a rota cruzar seu próprio horário de chegada
-          const timesSeq = normalizeSequentialTimes([
-            route.horarioSaida,
-            ...((Array.isArray((route as any).passaPor) ? route.passaPor : []) as any[]).flatMap((s) => [s.horarioChegada, s.horarioSaida]),
-            route.horarioChegada
-          ], baseDate);
-          const destMs = timesSeq[timesSeq.length - 1]!.getTime();
-          const lastMs = routeLastTimeRef.current.get(route.idRota) ?? null;
-          const nowMs = globalNow.getTime();
-          const crossedArrival = lastMs == null ? nowMs >= destMs : lastMs < destMs && nowMs >= destMs;
-          if (crossedArrival) {
-            addMessage(`Veículo ${route.idRota} chegou ao destino`);
-            arrivedVehicles.current.add(route.idRota);
-          }
-        }
       } else if (progressFraction <= 0) {
         // Veículo na origem
         setMarkerPosition(marker, route.origem);
@@ -297,6 +300,21 @@ export function useVehicleTracking() {
               if (crossedArrival) {
                 addMessage(`Veículo ${route.idRota} chegou ao destino`);
                 arrivedVehicles.current.add(route.idRota);
+                // Oculta o marcador atual e mostra o da rota oposta no ponto de chegada (se existir e estiver selecionada)
+                const flipId = (id: string) => {
+                  const parts = id.split('-');
+                  return parts.length === 2 ? `${parts[1]}-${parts[0]}` : null;
+                };
+                const counterpartId = flipId(route.idRota);
+                if (counterpartId) {
+                  const counterpart = markers.find(m => (m as any).routeId === counterpartId);
+                  // Respeita seleção de rotas: só mostra a oposta se estiver selecionada
+                  const counterpartSelected = counterpartId && selectedRoutes.has(counterpartId);
+                  // Removida lógica de ocultação e handover; manteremos todos ícones visíveis (quando selecionados)
+                  if (counterpart && counterpartSelected) {
+                    setMarkerPosition(counterpart, route.destino);
+                  }
+                }
               }
             }
 
@@ -345,6 +363,7 @@ export function useVehicleTracking() {
                   const tStart = timesAbs[2 * k];
                   const tEnd = timesAbs[2 * k + 1];
                   if (tNow >= tStart && tNow <= tEnd) {
+
                     const segDur = Math.max(1, tEnd.getTime() - tStart.getTime());
                     const frac = Math.max(0, Math.min(1, (tNow.getTime() - tStart.getTime()) / segDur));
                     const dStart = distAtLoc[k];

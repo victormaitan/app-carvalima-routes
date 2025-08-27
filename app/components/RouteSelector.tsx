@@ -51,7 +51,7 @@ export default function RouteSelector({ routes, selectedRoutes, onRouteToggle }:
   };
 
   return (
-    <div className="p-3 sm:p-4 bg-gray-800 h-full overflow-hidden flex flex-col">
+    <div className="p-3 sm:p-4 bg-gray-800 flex flex-col min-h-0">
       <div className="relative mb-3">
         <input
           type="text"
@@ -99,7 +99,7 @@ export default function RouteSelector({ routes, selectedRoutes, onRouteToggle }:
         </div>
       </div>
 
-      <div className="overflow-y-auto flex-1">
+      <div className="overflow-y-auto flex-1 min-h-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {filteredRoutes.map((route) => (
             <label

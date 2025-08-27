@@ -5,7 +5,7 @@ import TimeSlider from './TimeSlider';
 import RouteSelector from './RouteSelector';
 import { useMapSetup } from '../hooks/useMapSetup';
 import { useVehicleTracking } from '../hooks/useVehicleTracking';
-import { Share2 } from 'lucide-react';
+import { Share2, X } from 'lucide-react';
 
 export default function Map() {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -18,6 +18,7 @@ export default function Map() {
   
   const [mapLoading, setMapLoading] = useState(true);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   
   // Verifica se o Google Maps API está carregado (sem polling infinito)
   useEffect(() => {
@@ -148,6 +149,35 @@ export default function Map() {
     updateMarkerVisibility();
   }, [selectedRoutes, markers, updateMarkerVisibility]);
 
+  // Fit map to show all selected routes' trajectories
+  useEffect(() => {
+    if (!map || !googleMapsLoaded) return;
+    try {
+      const bounds = new google.maps.LatLngBounds();
+      let hasAny = false;
+      for (const r of routes) {
+        if (!selectedRoutes.has(r.idRota)) continue;
+        if (Array.isArray((r as any).steps) && (r as any).steps.length > 0) {
+          (r as any).steps.forEach((pt: google.maps.LatLng) => {
+            bounds.extend(pt);
+            hasAny = true;
+          });
+        } else {
+          // Fallback: usa origem/destino/waypoints
+          bounds.extend(new google.maps.LatLng(r.origem.lat, r.origem.lng));
+          bounds.extend(new google.maps.LatLng(r.destino.lat, r.destino.lng));
+          if (Array.isArray(r.passaPor)) {
+            r.passaPor.forEach((p) => bounds.extend(new google.maps.LatLng(p.lat, p.lng)));
+          }
+          hasAny = true;
+        }
+      }
+      if (hasAny && !bounds.isEmpty()) {
+        map.fitBounds(bounds, 80);
+      }
+    } catch {}
+  }, [map, googleMapsLoaded, selectedRoutes, markers, directionsRenderers]);
+
   const handleRouteToggle = (routeId: string) => {
     setSelectedRoutes((prev) => {
       const newSet = new Set(prev);
@@ -234,55 +264,61 @@ export default function Map() {
   };
 
   return (
-    <div className="h-screen w-full bg-gray-900 text-white flex flex-col md:flex-row">
-      <div className="w-full md:w-96 flex flex-col border-gray-700 border-b md:border-b-0 md:border-r max-h-[50vh] md:max-h-none overflow-hidden">
-        <div className="flex-none h-[260px] sm:h-[340px] md:h-[400px] border-b border-gray-700">
-          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-700">
-            <h2 className="text-lg sm:text-xl font-bold">Rotas Ativas</h2>
-            <button
-              onClick={handleShare}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-              title="Compartilhar rotas selecionadas"
-            >
-              <Share2 className="w-5 h-5" />
-            </button>
-          </div>
-          <RouteSelector
-            routes={routes}
-            selectedRoutes={selectedRoutes}
-            onRouteToggle={handleRouteToggle}
-          />
+    <div className="h-screen w-full bg-gray-900 text-white flex flex-col">
+      {/* Barra superior sobre o mapa com ações */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-gray-900/80 backdrop-blur supports-[backdrop-filter]:bg-gray-900/60">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsSelectorOpen(true)}
+            className="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm"
+          >
+            Selecionar Rotas
+          </button>
         </div>
-        
-        <div className="flex-1 min-h-0">
-          <MessagePanel messages={messages} />
-        </div>
+        <button
+          onClick={handleShare}
+          className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm"
+          title="Compartilhar rotas selecionadas"
+        >
+          <span className="inline-flex items-center gap-2"><Share2 className="w-4 h-4" /> Compartilhar</span>
+        </button>
       </div>
 
-      <div className="flex-1 flex flex-col">
-        <div className='h-screen' style={{position: 'relative' }}>
-          <div ref={mapRef} style={{ width: '100%', height: '100%', backgroundColor: '#e0e0e0' }} />
-          {mapLoading && (
-            <div style={{ 
-              position: 'absolute', 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              bottom: 0, 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              backgroundColor: 'rgba(0,0,0,0.7)',
-              zIndex: 10
-            }}>
-              <div style={{ color: 'white', textAlign: 'center' }}>
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                <p className="text-lg">Carregando mapa... {googleMapsLoaded ? '(API carregada)' : '(API não carregada)'}</p>
+      {/* Área do mapa + Logs responsivo */}
+      <div className="flex-1 min-h-0 flex flex-col">
+        {/* Conteúdo principal: coluna no mobile, lateral no desktop */}
+        <div className="flex-1 min-h-0 flex flex-col md:flex-row">
+          {/* Mapa */}
+          <div className="flex-1 relative min-h-0">
+            <div ref={mapRef} style={{ width: '100%', height: '100%', backgroundColor: '#e0e0e0' }} />
+            {mapLoading && (
+              <div style={{ 
+                position: 'absolute', 
+                top: 0, 
+                left: 0, 
+                right: 0, 
+                bottom: 0, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                zIndex: 10
+              }}>
+                <div style={{ color: 'white', textAlign: 'center' }}>
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                  <p className="text-lg">Carregando mapa... {googleMapsLoaded ? '(API carregada)' : '(API não carregada)'}</p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+
+          {/* Logs: abaixo no mobile, lateral no desktop */}
+          <div className="flex-none max-h-40 md:max-h-none md:h-full md:w-96 overflow-y-auto border-t md:border-t-0 md:border-l border-gray-700">
+            <MessagePanel messages={messages} />
+          </div>
         </div>
         
+        {/* Barra de controle inferior */}
         <div className="flex-none h-20 sm:h-24 border-t border-gray-700">
           <div className="h-full bg-gray-800 p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             <button
@@ -322,6 +358,31 @@ export default function Map() {
           </div>
         </div>
       </div>
+
+      {isSelectorOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true">
+          <div className="bg-gray-800 w-full max-w-5xl h-[80vh] rounded-lg shadow-lg flex flex-col border border-gray-700">
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <h3 className="text-lg font-semibold">Selecionar Rotas</h3>
+              <button
+                onClick={() => setIsSelectorOpen(false)}
+                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                aria-label="Fechar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 min-h-0 overflow-hidden">
+              {/* O RouteSelector já lida com scroll interno */}
+              <RouteSelector
+                routes={routes}
+                selectedRoutes={selectedRoutes}
+                onRouteToggle={handleRouteToggle}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
