@@ -287,10 +287,10 @@ export default function Map() {
       {/* Área do mapa + Logs responsivo */}
       <div className="flex-1 min-h-0 flex flex-col">
         {/* Conteúdo principal: coluna no mobile, lateral no desktop */}
-        <div className="flex-1 min-h-0 flex flex-col md:flex-row">
+        <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
           {/* Mapa */}
           <div className="flex-1 relative min-h-0">
-            <div ref={mapRef} style={{ width: '100%', height: '100%', backgroundColor: '#e0e0e0' }} />
+            <div ref={mapRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', backgroundColor: '#0f172a' }} />
             {mapLoading && (
               <div style={{ 
                 position: 'absolute', 
@@ -319,8 +319,8 @@ export default function Map() {
         </div>
         
         {/* Barra de controle inferior */}
-        <div className="flex-none h-20 sm:h-24 border-t border-gray-700">
-          <div className="h-full bg-gray-800 p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+        <div className="flex-none h-20 sm:h-24 border-t border-gray-700 bg-gray-900">
+          <div className="h-full bg-gray-900 p-3 sm:p-4 pb-[max(env(safe-area-inset-bottom),1rem)] flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             <button
               onClick={() => {
                 if (sliderProgress >= 100) setSliderProgress(0);

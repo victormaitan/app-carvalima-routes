@@ -7,11 +7,24 @@
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  @apply bg-gray-900 text-white;
+  -webkit-tap-highlight-color: transparent;
+  background-color: #111827; /* fallback */
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
+}
+
+/* Suporte a safe-area em iOS para evitar “bordas brancas” perto da barra inferior */
+:root {
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-bottom-padding {
+  padding-bottom: max(var(--safe-bottom), 1rem);
 }
 
 @keyframes fadeIn {

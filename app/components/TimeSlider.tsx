@@ -49,7 +49,7 @@ export default function TimeSlider({ progress, onTimeChange, currentTime }: Time
   };
 
   return (
-    <div className="h-full bg-gray-800 p-3 sm:p-6 flex items-center">
+    <div className="h-full bg-gray-900 p-3 sm:p-6 flex items-center">
       <div className="w-full flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
         <input
           ref={sliderRef}
